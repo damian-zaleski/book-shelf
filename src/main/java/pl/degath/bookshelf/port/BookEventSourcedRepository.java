@@ -2,6 +2,7 @@ package pl.degath.bookshelf.port;
 
 import pl.degath.bookshelf.Book;
 import pl.degath.bookshelf.DomainEvent;
+import pl.degath.bookshelf.exception.EntityNotFoundException;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -27,14 +28,14 @@ public class BookEventSourcedRepository implements BookRepository {
     @Override
     public Book find(UUID id) {
         if (!books.containsKey(id)) {
-            return null;
+            throw new EntityNotFoundException(id);
         }
         return Book.recreateFrom(id, books.get(id));
     }
 
     public Book find(UUID id, Instant timestamp) {
         if (!books.containsKey(id)) {
-            return null;
+            throw new EntityNotFoundException(id);
         }
         List<DomainEvent> domainEvents = books.get(id)
                 .stream()
