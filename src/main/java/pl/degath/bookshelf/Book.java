@@ -1,7 +1,6 @@
 package pl.degath.bookshelf;
 
-import javaslang.API;
-import javaslang.Predicates;
+import io.vavr.API;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -9,15 +8,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static javaslang.API.Case;
-import static javaslang.collection.List.ofAll;
+import static io.vavr.API.$;
+import static io.vavr.API.Case;
+import static io.vavr.Predicates.instanceOf;
+import static io.vavr.collection.List.ofAll;
 
 public class Book {
 
-    private final UUID uuid;
     private final Clock clock;
-    private BookState state = BookState.PENDING;
+    private final UUID uuid;
     private int rate = 0;
+    private BookState state = BookState.PENDING;
     private List<DomainEvent> changes = new ArrayList<>();
 
     public Book(UUID uuid, Clock clock) {
@@ -31,22 +32,14 @@ public class Book {
 
     private Book handleEvent(DomainEvent event) {
         return API.Match(event).of(
-                Case(Predicates.instanceOf(BookRead.class), this::bookRead),
-                Case(Predicates.instanceOf(BookRated.class), this::bookRated),
-                Case(Predicates.instanceOf(BookDeprecated.class), this::bookDeprecated)
+                Case($(instanceOf(BookRead.class)), this::bookRead),
+                Case($(instanceOf(BookRated.class)), this::bookRated),
+                Case($(instanceOf(BookDeprecated.class)), this::bookDeprecated)
         );
     }
 
     void read() {
-        if (this.state == BookState.READ) {
-            throw new IllegalStateException("You have already marked this book as read.");
-        }
-        if (this.state == BookState.DEPRECATED) {
-            throw new IllegalStateException("Don't waste time reading a deprecated book.");
-        }
-        if (this.state == BookState.PENDING) {
-            bookRead(new BookRead(Instant.now(clock)));
-        }
+        bookRead(this.state.readBook(clock));
     }
 
     private Book bookRead(BookRead bookRead) {
