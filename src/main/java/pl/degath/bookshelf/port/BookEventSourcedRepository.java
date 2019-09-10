@@ -26,21 +26,20 @@ public class BookEventSourcedRepository implements BookRepository {
     }
 
     @Override
-    public Book find(UUID id) {
+    public List<DomainEvent> find(UUID id) {
         if (!books.containsKey(id)) {
             throw new EntityNotFoundException(id);
         }
-        return Book.recreateFrom(id, books.get(id));
+        return books.get(id);
     }
 
-    public Book find(UUID id, Instant timestamp) {
+    public List<DomainEvent> find(UUID id, Instant timestamp) {
         if (!books.containsKey(id)) {
             throw new EntityNotFoundException(id);
         }
-        List<DomainEvent> domainEvents = books.get(id)
+        return books.get(id)
                 .stream()
                 .filter(event -> !event.occurredAt().isAfter(timestamp))
                 .collect(Collectors.toList());
-        return Book.recreateFrom(id, domainEvents);
     }
 }

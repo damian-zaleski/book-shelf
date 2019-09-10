@@ -9,6 +9,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,13 +34,13 @@ class BookEventSourceRepositoryTest {
     @Test
     @DisplayName("The book can be saved.")
     void save_withValidBook_savesTheBook() {
-        UUID uuid = UUID.randomUUID();
-        Book theBook = new Book(uuid, Clock.systemDefaultZone());
+        UUID id = UUID.randomUUID();
+        Book theBook = new Book(id, Clock.systemDefaultZone());
         theBook.read();
 
         bookRepository.save(theBook);
 
-        Book found = bookRepository.find(uuid);
+        Book found = Book.recreateFrom(id, bookRepository.find(id));
         assertThat(found).isNotNull();
         assertThat(found.isRead()).isTrue();
     }
@@ -50,18 +51,18 @@ class BookEventSourceRepositoryTest {
         UUID id = UUID.randomUUID();
         addBookAndChangeRate(id);
 
-        Book found = bookRepository.find(id, nowMinusDays(3));
+        List<DomainEvent> events = bookRepository.find(id, nowMinusDays(3));
 
+        Book found = Book.recreateFrom(id, events);
         assertThat(found.getRate()).isEqualTo(3);
     }
 
-    private Book addBookAndChangeRate(UUID id) {
+    private void addBookAndChangeRate(UUID id) {
         Book someBook = new Book(id, clock);
         someBook.read();
         someBook.rate(3);
         bookRepository.save(someBook);
         someBook.rate(4);
         bookRepository.save(someBook);
-        return someBook;
     }
 }
