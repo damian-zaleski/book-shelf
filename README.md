@@ -3,8 +3,9 @@ App **in progress** strictly for learning purposes (Event Driven Systems).
 
 ### Technology stack:
 1. Spring Boot 2.1.7
-1. Java 12
-2. JUnit 5.3.2
-3. AssertJ 3.11.1
-4. ...
+2. Gradle 5.6
+3. Java 12
+4. JUnit 5.3.2
+5. AssertJ 3.11.1
+6. ...
 
